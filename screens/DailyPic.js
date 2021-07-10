@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet ,TouchableOpacity, ImageBackground, Image, SafeAreaView, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet ,TouchableOpacity, ImageBackground, Image, SafeAreaView, Platform, Linking, FlatList, Alert } from 'react-native';
 import axios from 'axios';
 
 export default class DailyPic extends React.Component{
@@ -11,10 +11,23 @@ export default class DailyPic extends React.Component{
     }
 
     getAPI = () => {
-        axios.get('https://api.nasa.gov/planetary/apod?api_key=uwCIyIDblT9ulD3nI4yMNeHvUqfJ8lK9uOfik8gc')
-        .then(response => {this.setState({apod: response.data})
+        axios.get('https://ll.thespacedevs.com/2.0.0/config/spacecraft/')
+        .then(response => {this.setState({apod: response.data.results})
         }).catch(error => {Alert.alert(error.message)
         })
+    }
+
+    keyExtractor = (item, index) => index.toString()
+    renderItem = ({item}) => {
+        return(
+            <View style={{borderWidth: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 10, elevation: 10}}>
+                <Image source={{uri: item.agency.image_url}} style={{width: '100%', height: 200, marginTop: 15, marginBottom: 15, marginRight: 10}}/>
+                <Text style={{fontWeight: 'bold', fontSize: 20}}>{item.name}</Text>
+                <Text style={{color: '#696969'}}>{item.agency.name}</Text>
+                <Text>Description</Text>
+                <Text style={{color: '#a9a9a9', marginLeft: 10, marginRight: 10}}>{item.agency.description}</Text>
+            </View>
+        )
     }
 
     componentDidMount(){
@@ -24,20 +37,19 @@ export default class DailyPic extends React.Component{
     render(){
         return(
             <View style={styles.container}>
-                <SafeAreaView style={styles.droidSafeArea}/>
+                {/* <SafeAreaView style={styles.droidSafeArea}/> */}
                 <ImageBackground source={require('../assets/daily_pic_bg.jpg')} style={styles.bgImage}>
                     <View style={styles.titleBar}>
                         <Text style={styles.titleText}>Steller - Daily Pic</Text>
                     </View>
                     <View style={styles.apiContainer}>
-                    <Text style={styles.routeText}>Astronomy Pictures of the day</Text>
-                    <Text style={styles.routeTitle}>{this.state.apod.title}</Text>
-                    <TouchableOpacity style={styles.listContainer} onPress = {() => Linking.openURL(this.state.apod.url).catch(err => console.error('Could not load page', err))}>
-                        <View style = {styles.iconContainer}>
-                            <Image source={require('../assets/play-video.png')} style={styles.playIcon} />
-                        </View>
-                    </TouchableOpacity>
-                    <Text style={styles.explaination}>{this.state.apod.explaination}</Text>
+                    <FlatList 
+                        keyExtractor = {this.keyExtractor}
+                        data={this.state.apod}
+                        renderItem = {this.renderItem}
+                        horizontal = {true}
+                        showsHorizontalScrollIndicator = {false}
+                    />
                     </View>
                 </ImageBackground>
             </View>
